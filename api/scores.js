@@ -1,17 +1,10 @@
 // Vercel Serverless Function — proxies football-data.org so the browser
-// can fetch it without CORS issues. The football-data.org token lives as
-// a Vercel environment variable (FOOTBALL_DATA_TOKEN) — never sent to
-// the browser.
-//
-// File path /api/scores.js maps to URL /api/scores automatically
-// (Vercel convention).
+// can fetch it without CORS issues. Token lives as Vercel env var.
 
 export default async function handler(req, res) {
   const token = process.env.FOOTBALL_DATA_TOKEN;
   if (!token) {
-    res.status(500).json({
-      error: "FOOTBALL_DATA_TOKEN not set in Vercel environment variables"
-    });
+    res.status(500).json({ error: "FOOTBALL_DATA_TOKEN not set in Vercel environment variables" });
     return;
   }
   try {
@@ -26,8 +19,6 @@ export default async function handler(req, res) {
     res.setHeader("access-control-allow-origin", "*");
     res.send(text);
   } catch (err) {
-    res.status(502).json({
-      error: "Proxy fetch failed: " + (err && err.message ? err.message : String(err))
-    });
+    res.status(502).json({ error: "Proxy fetch failed: " + (err && err.message ? err.message : String(err)) });
   }
 }

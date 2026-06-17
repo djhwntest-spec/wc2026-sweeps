@@ -2418,14 +2418,35 @@ function setupAutoRefresh(){
   }
 }
 
+/* Try to fetch from the proxy with a single silent retry on transient
+   errors. Transient = 502/503/504 (gateway/timeout — usually a cold-start
+   or upstream blip) and network errors. Hard errors (404, 403, 429, 500
+   with token-not-set) won't get better on retry, so we surface those on
+   the first attempt. Returns a Response or throws if both attempts fail. */
+async function fetchScoresWithRetry(){
+  const url = "/api/scores";
+  const isTransient = (status) => status === 502 || status === 503 || status === 504;
+  /* First attempt */
+  try {
+    const r = await fetch(url);
+    if(r.ok || !isTransient(r.status)) return r;
+    /* Transient error — fall through to retry */
+  } catch(e){
+    /* Network error — also retry once */
+  }
+  /* Wait briefly then retry once */
+  await new Promise(res => setTimeout(res, 2000));
+  return fetch(url);
+}
+
 async function fetchLiveData(showToast){
-  /* Proxied through /scores — the function holds the football-data.org
+  /* Proxied through /api/scores — the function holds the football-data.org
      token server-side, so we don't need an API key on the client side at
      all. The Settings field is now a simple on/off switch (any non-empty
      value = on) that admins can toggle without a redeploy. */
   if(!state.settings.apiKey) return;
   try{
-    const r = await fetch("/api/scores");
+    const r = await fetchScoresWithRetry();
     if(!r.ok){
       const errText = r.status===404 ? "Proxy not found — check Vercel deploy includes api/scores.js"
                      : r.status===500 ? "Proxy: server token missing (set FOOTBALL_DATA_TOKEN in Vercel env vars)"
