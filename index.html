@@ -451,6 +451,36 @@
   table.standings tr.eliminated td.team-cell{text-decoration:line-through}
   table.standings td.pts{font-weight:700;color:var(--ink)}
 
+  /* On narrow screens (mobile), hide W/D/L columns to keep the most
+     important stats (P, GD, Pts) visible without horizontal overflow.
+     Pts is the headline stat — must never be cut off. */
+  @media (max-width:560px){
+    table.standings{font-size:12px}
+    table.standings th,
+    table.standings td{padding:9px 6px}
+    table.standings th:first-child,
+    table.standings td:first-child{padding-left:10px}
+    table.standings th:last-child,
+    table.standings td:last-child{padding-right:10px}
+    /* Hide the W, D, L columns — they're derivable from P/Pts/GD anyway */
+    table.standings th.col-w,
+    table.standings td.col-w,
+    table.standings th.col-d,
+    table.standings td.col-d,
+    table.standings th.col-l,
+    table.standings td.col-l{display:none}
+    /* Tighten numeric column widths */
+    table.standings th.num{width:28px}
+    /* Make Pts visually prominent on mobile since it's the headline stat */
+    table.standings th.col-pts,
+    table.standings td.pts{
+      width:34px;background:rgba(172,154,106,.06);
+    }
+    table.standings td.pts{color:var(--gold)}
+    /* Let the team cell breathe — flex it */
+    table.standings td.team-cell{gap:7px}
+  }
+
   /* ─────── BRACKET ─────── */
   .bracket-wrap{overflow-x:auto;padding-bottom:8px}
   .bracket{display:grid;grid-template-columns:repeat(5,minmax(190px,1fr));gap:24px;min-width:1150px;padding:8px 4px;min-height:1100px}
@@ -1916,8 +1946,12 @@ function renderGroups(){
         <thead>
           <tr>
             <th class="num">#</th><th>Team</th>
-            <th class="num">P</th><th class="num">W</th><th class="num">D</th><th class="num">L</th>
-            <th class="num">GD</th><th class="num">Pts</th>
+            <th class="num">P</th>
+            <th class="num col-w">W</th>
+            <th class="num col-d">D</th>
+            <th class="num col-l">L</th>
+            <th class="num">GD</th>
+            <th class="num col-pts">Pts</th>
           </tr>
         </thead>
         <tbody>
@@ -1925,7 +1959,10 @@ function renderGroups(){
             <tr class="${r.qualified?'qualified':''} ${r.eliminated?'eliminated':''}">
               <td class="num">${i+1}</td>
               <td class="team-cell"><span class="flag">${flagFor(r.team)}</span> ${r.team}</td>
-              <td class="num">${r.P}</td><td class="num">${r.W}</td><td class="num">${r.D}</td><td class="num">${r.L}</td>
+              <td class="num">${r.P}</td>
+              <td class="num col-w">${r.W}</td>
+              <td class="num col-d">${r.D}</td>
+              <td class="num col-l">${r.L}</td>
               <td class="num">${r.GD>0?'+':''}${r.GD}</td>
               <td class="num pts">${r.Pts}</td>
             </tr>
